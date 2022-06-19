@@ -7,15 +7,15 @@ class AppConfig {
 }
 
 //OAuth2
-const String dynamicCrm =
-    'https://org3c92a778.api.crm4.dynamics.com/api/data/v9.2';
-const String clientId = 'ad951783-c767-4fde-9569-ca02afe1b34c';
-
+const String dynamicCrm = 'org3c92a778.api.crm4.dynamics.com';
+const String clientId = '8822511f-94df-47da-900c-9df9392684f6';
 const String tenantId = '3c0373be-a110-4245-bebe-dd3b9beb76d0';
-const String redirectUrl = 'https://login.live.com/oauth20_desktop.srf';
+const String redirectUrl =
+    'https://login.microsoftonline.com/common/oauth2/nativeclient';
+const String version = '9.2';
 
 //api
-const String baseUrl = "{{url}}/api/data/v{{version}}";
+const String baseUrl = "$dynamicCrm/api/data/v$version";
 
 //aedemirsen@aedesium.onmicrosoft.com
 

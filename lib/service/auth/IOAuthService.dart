@@ -1,3 +1,3 @@
 abstract class IOAuthService {
-  Future<String?> loginAction();
+  Future<String?> authenticate();
 }

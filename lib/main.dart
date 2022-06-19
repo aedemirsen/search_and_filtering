@@ -27,19 +27,32 @@ void main() {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         navigatorKey: conf.AppConfig.navigatorKey,
-        home: const SearchAndFiltering(title: conf.appName),
+        home: SearchAndFiltering(title: conf.appName),
       ),
     ),
   );
 }
 
 class SearchAndFiltering extends StatelessWidget {
-  const SearchAndFiltering({Key? key, required this.title}) : super(key: key);
+  SearchAndFiltering({Key? key, required this.title}) : super(key: key);
   final String title;
   @override
   Widget build(BuildContext context) {
     initApp(context);
-    return HomePage(title: title);
+
+    return BlocConsumer<CubitController, ControllerState>(
+      listener: (context, state) {},
+      builder: (context, state) {
+        if (state is AuthSuccessful) {
+          return HomePage(title: title);
+        } else {
+          return HomePage(title: title);
+          // return const Scaffold(
+          //   body: Center(child: CircularProgressIndicator()),
+          // );
+        }
+      },
+    );
   }
 }
 

@@ -5,20 +5,14 @@ class Service extends IService {
   Service(super.dio);
 
   @override
-  Future<ResponseModel?> getAccountByName(String? accountName) {
-    // TODO: implement getAccountByName
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<ResponseModel?> getAccountByNumber(String? accountNumber) {
-    // TODO: implement getAccountByNumber
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<ResponseModel?>> getAccounts() {
-    // TODO: implement getAccounts
-    throw UnimplementedError();
+  Future<List<ResponseModel?>?> getAccounts({String? params = ''}) async {
+    try {
+      final response = await dio.get('$endpoint$params');
+      return (response.data['value'] as List)
+          .map((e) => ResponseModel.fromJson(e))
+          .toList();
+    } on Exception {
+      return null;
+    }
   }
 }

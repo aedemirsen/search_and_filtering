@@ -1,12 +1,10 @@
-import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_appauth/flutter_appauth.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:search_and_filtering/TEST.dart';
 import 'package:search_and_filtering/config/app_config.dart' as conf;
-import 'package:search_and_filtering/service/auth/IOAuthService.dart';
-import 'package:search_and_filtering/service/auth/OAuthService.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:search_and_filtering/cubit/cubit_controller.dart';
+import 'package:search_and_filtering/model/response_model.dart';
 
 import 'custom_widgets/grid_view_scroll.dart';
 import 'custom_widgets/list_view_scroll.dart';
@@ -20,14 +18,15 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   TextEditingController searchController = TextEditingController();
-  late bool _isListView, _isFilterOpen;
-  String? _statusCode, _stateProvince;
+  late bool _isFilterOpen, _isListView;
+  String? _stateCode = '-', _stateProvince = '-';
+  List<ResponseModel?> objects = [];
 
   @override
   void initState() {
     super.initState();
-    _isListView = true;
     _isFilterOpen = false;
+    _isListView = true;
   }
 
   @override
@@ -38,7 +37,7 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Stack(
         children: [
-          mainPage(),
+          mainPage(context),
           transparentBackground(),
           filterScreen(),
         ],
@@ -46,7 +45,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Column mainPage() {
+  Column mainPage(BuildContext context) {
     return Column(
       children: [
         //search and filter
@@ -55,7 +54,18 @@ class _HomePageState extends State<HomePage> {
         //listview or gridview
         changeView(),
         //objects table
-        _isListView ? listView(TEST.objects()) : gridView(TEST.objects()),
+        BlocBuilder<CubitController, ControllerState>(
+          builder: (context, state) {
+            objects = context.watch<CubitController>().objectsTable;
+            _isListView = context.watch<CubitController>().isListView;
+            if (state is TableView) {
+              return _isListView ? listView(objects) : gridView(objects);
+            } else if (state is TableUpdated) {
+              return _isListView ? listView(objects) : gridView(objects);
+            }
+            return listView(TEST.objects());
+          },
+        )
       ],
     );
   }
@@ -80,60 +90,71 @@ class _HomePageState extends State<HomePage> {
               const Padding(
                 padding: EdgeInsets.only(top: 20),
               ),
-              const Text('Status Code'),
-              SizedBox(
-                width: conf.filterScreenWidth * 0.8,
-                child: DropdownButton<String>(
-                  value: _statusCode ?? "-",
-                  icon: const SizedBox.shrink(),
-                  elevation: 16,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _statusCode = newValue!;
-                    });
-                  },
-                  items: <String>["-", 'One', 'Two', 'Free', 'Four']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ),
-              ),
+              const Text('State Code'),
+              stateCode(),
               const Padding(
                 padding: EdgeInsets.only(top: 20),
               ),
               const Text('State / Province'),
-              SizedBox(
-                width: conf.filterScreenWidth * 0.8,
-                child: DropdownButton<String>(
-                  value: _stateProvince ?? "-",
-                  icon: const SizedBox.shrink(),
-                  elevation: 16,
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _stateProvince = newValue!;
-                    });
-                  },
-                  items: <String>["-", 'One', 'Two', 'Free', 'Four']
-                      .map<DropdownMenuItem<String>>((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                ),
-              ),
-              //filters
-              Expanded(
-                child: SizedBox(),
-              ),
+              stateProvince(),
+              const Spacer(),
               //button
               filterButton(),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  SizedBox stateProvince() {
+    return SizedBox(
+      width: conf.filterScreenWidth * 0.8,
+      child: DropdownButton<String>(
+        value: _stateProvince,
+        icon: const SizedBox.shrink(),
+        elevation: 16,
+        onChanged: (String? newValue) {
+          context.read<CubitController>().changeStateProvince(newValue ?? '-');
+          setState(() {
+            _stateProvince = newValue!;
+          });
+        },
+        items: context
+            .watch<CubitController>()
+            .statesProvinces
+            .map<DropdownMenuItem<String>>((String? value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value ?? ''),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  SizedBox stateCode() {
+    return SizedBox(
+      width: conf.filterScreenWidth * 0.8,
+      child: DropdownButton<String>(
+        value: _stateCode,
+        icon: const SizedBox.shrink(),
+        elevation: 16,
+        onChanged: (String? newValue) {
+          context.read<CubitController>().changeStateCode(newValue ?? '-');
+          setState(() {
+            _stateCode = newValue;
+          });
+        },
+        items: context
+            .watch<CubitController>()
+            .stateCodes
+            .map<DropdownMenuItem<String>>((String? value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value ?? ''),
+          );
+        }).toList(),
       ),
     );
   }
@@ -158,12 +179,32 @@ class _HomePageState extends State<HomePage> {
         ),
         color: Colors.blue,
         child: const Text("Filter"),
-        onPressed: () async {
-          IOAuthService s = OAuthService();
-          await s.loginAction();
-          // setState(() {
-          //   _isFilterOpen = false;
-          // });
+        onPressed: () {
+          var list = TEST.objects();
+          if (_stateCode != '-' && _stateProvince != '-') {
+            context.read<CubitController>().updateObjectsTable(list
+                .where((element) =>
+                    element.statecode.toString() == _stateCode &&
+                    element.address1Stateorprovince.toString() ==
+                        _stateProvince)
+                .toList());
+          } else if (_stateCode == '-' && _stateProvince != '-') {
+            context.read<CubitController>().updateObjectsTable(list
+                .where((element) =>
+                    element.address1Stateorprovince.toString() ==
+                    _stateProvince)
+                .toList());
+          } else if (_stateCode != '-' && _stateProvince == '-') {
+            context.read<CubitController>().updateObjectsTable(list
+                .where((element) => element.statecode.toString() == _stateCode)
+                .toList());
+          } else {
+            context.read<CubitController>().updateObjectsTable(TEST.objects());
+          }
+          setState(() {
+            _isFilterOpen = false;
+            searchController.clear();
+          });
         },
       ),
     );
@@ -244,9 +285,8 @@ class _HomePageState extends State<HomePage> {
             child: GestureDetector(
               key: const Key("listViewIcon"),
               child: const Icon(conf.listView),
-              onTap: () => setState(() {
-                _isListView = true;
-              }),
+              onTap: () =>
+                  context.read<CubitController>().changeTableView(true),
             ),
           ),
           Padding(
@@ -254,9 +294,8 @@ class _HomePageState extends State<HomePage> {
             child: GestureDetector(
               key: const Key("gridViewIcon"),
               child: const Icon(conf.gridView),
-              onTap: () => setState(() {
-                _isListView = false;
-              }),
+              onTap: () =>
+                  context.read<CubitController>().changeTableView(false),
             ),
           ),
         ],
@@ -267,7 +306,7 @@ class _HomePageState extends State<HomePage> {
   Padding searchAndFilter() {
     return Padding(
       padding: const EdgeInsets.only(
-        top: 8.0,
+        top: 15.0,
         bottom: 8.0,
         left: conf.listTileInset,
       ),
@@ -287,6 +326,10 @@ class _HomePageState extends State<HomePage> {
       child: Center(
         child: GestureDetector(
           onTap: () {
+            //remove later
+            context.read<CubitController>().setStateCodes();
+            context.read<CubitController>().setStatesProvinces();
+            //
             setState(() {
               _isFilterOpen = true;
             });
@@ -314,11 +357,23 @@ class _HomePageState extends State<HomePage> {
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10.0),
           ),
-          hintText: "Search",
+          hintText: "Account Name or Number",
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(10),
           ),
         ),
+        onChanged: (value) {
+          value.isEmpty
+              ? context
+                  .read<CubitController>()
+                  .updateObjectsTable(TEST.objects())
+              : context.read<CubitController>().updateObjectsTable(TEST
+                  .objects()
+                  .where((element) =>
+                      element.name!.startsWith(value) ||
+                      element.accountnumber.toString().startsWith(value))
+                  .toList());
+        },
       ),
     );
   }
