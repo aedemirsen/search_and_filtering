@@ -7,7 +7,8 @@ class AppConfig {
 }
 
 //OAuth2
-const String dynamicCrm = 'org3c92a778.api.crm4.dynamics.com';
+const String dynamicsCrmApi =
+    'https://org6dd210f6.api.crm4.dynamics.com/api/data/v9.2';
 const String clientId = '8822511f-94df-47da-900c-9df9392684f6';
 const String tenantId = '3c0373be-a110-4245-bebe-dd3b9beb76d0';
 const String redirectUrl =
@@ -15,9 +16,8 @@ const String redirectUrl =
 const String version = '9.2';
 
 //api
-const String baseUrl = "$dynamicCrm/api/data/v$version";
-
-//aedemirsen@aedesium.onmicrosoft.com
+//const String baseUrl = "$dynamicsCrmApi/api/data/v$version";
+const String baseUrl = "http://aedemirsen.bilgimeclisi.com/rest_api";
 
 //home screen
 const String appName = "Search and Filtering";

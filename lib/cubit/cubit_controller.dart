@@ -1,9 +1,7 @@
 import 'package:bloc/bloc.dart';
-import 'package:search_and_filtering/model/response_model.dart';
-import 'package:search_and_filtering/service/api/IService.dart';
-import 'package:search_and_filtering/service/auth/IOAuthService.dart';
-
-import '../TEST.dart';
+import '../core/model/response_model.dart';
+import '../core/service/api/IService.dart';
+import '../core/service/auth/IOAuthService.dart';
 
 class CubitController extends Cubit<ControllerState> {
   CubitController(this.authService, this.service) : super(InitState());
@@ -17,7 +15,8 @@ class CubitController extends Cubit<ControllerState> {
 
   //objects table
   bool isListView = true;
-  List<ResponseModel?> objectsTable = TEST.objects();
+  List<ResponseModel> objectsTable = [];
+  List<ResponseModel> allAccounts = [];
 
   //state codes
   String selectedStateCode = '-';
@@ -28,10 +27,8 @@ class CubitController extends Cubit<ControllerState> {
   List<String?> statesProvinces = [];
 
   Future<void> getAccessToken() async {
-    changeLoadingView(true);
     final data = await authService.authenticate();
-    changeLoadingView(false);
-    if (data == null) {
+    if (data != null) {
       service.dio.options.headers = {
         'Authorization': 'Bearer $data',
         'Content-Type': 'application/json',
@@ -44,13 +41,18 @@ class CubitController extends Cubit<ControllerState> {
   }
 
   Future<void> getAccounts({String params = ''}) async {
+    changeLoadingView(true);
     final data = await service.getAccounts(params: params);
+    changeLoadingView(false);
     if (data != null) {
+      //remove test data
+      data.removeAt(0);
       //load sample datas
+      allAccounts = data;
       objectsTable = data;
       setStateCodes();
       setStatesProvinces();
-      emit(DataReceived(data));
+      emit(DataReceived(objectsTable));
     } else {
       emit(DataReceiveFail());
     }
@@ -66,20 +68,19 @@ class CubitController extends Cubit<ControllerState> {
     emit(TableView(b));
   }
 
-  void updateObjectsTable(List<ResponseModel?> list) {
+  void updateObjectsTable(List<ResponseModel> list) {
     objectsTable = list;
     emit(TableUpdated());
   }
 
   void setStateCodes() {
     stateCodes =
-        TEST.objects().map((e) => e.statecode.toString()).toSet().toList();
+        objectsTable.map((e) => e.statecode.toString()).toSet().toList();
     stateCodes.insert(0, '-');
   }
 
   void setStatesProvinces() {
-    statesProvinces = TEST
-        .objects()
+    statesProvinces = objectsTable
         .map((e) => e.address1Stateorprovince.toString())
         .toSet()
         .toList();
@@ -104,7 +105,7 @@ class AuthSuccessful extends ControllerState {}
 class AuthFail extends ControllerState {}
 
 class DataReceived extends ControllerState {
-  final List<ResponseModel?> accounts;
+  final List<ResponseModel> accounts;
 
   DataReceived(this.accounts);
 }

@@ -126,7 +126,7 @@ packages:
     source: hosted
     version: "2.0.1"
   flutter_secure_storage:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: flutter_secure_storage
       url: "https://pub.dartlang.org"
@@ -178,7 +178,7 @@ packages:
     source: sdk
     version: "0.0.0"
   http:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: http
       url: "https://pub.dartlang.org"
@@ -297,21 +297,21 @@ packages:
     source: hosted
     version: "6.0.3"
   shared_preferences:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: shared_preferences
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.15"
   shared_preferences_android:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: shared_preferences_android
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.0.12"
   shared_preferences_ios:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: shared_preferences_ios
       url: "https://pub.dartlang.org"

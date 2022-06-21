@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:search_and_filtering/config/app_config.dart' as conf;
-import 'package:search_and_filtering/model/response_model.dart';
 import 'package:search_and_filtering/utility/page_router.dart';
 import 'package:search_and_filtering/view/details_screen.dart';
+
+import '../../core/model/response_model.dart';
 
 class ListViewScroll extends StatelessWidget {
   const ListViewScroll({
@@ -18,6 +19,7 @@ class ListViewScroll extends StatelessWidget {
       return const Text('No Record Found');
     }
     return ListView.builder(
+      key: const Key('listView'),
       itemCount: objects.length,
       itemBuilder: (BuildContext context, int index) {
         return SizedBox(
@@ -26,9 +28,21 @@ class ListViewScroll extends StatelessWidget {
             child: Card(
               child: Center(
                 child: ListTile(
-                  leading: Image(
-                    image: objects.elementAt(index).entityimageUrl,
+                  leading: const Icon(
+                    Icons.question_mark,
                   ),
+                  // leading: Builder(builder: (context) {
+                  //   if (objects.elementAt(index).entityimage != null) {
+                  //     return Image(
+                  //       image:
+                  //           AssetImage(objects.elementAt(index).entityimage!),
+                  //     );
+                  //   } else {
+                  //     return const Icon(
+                  //       Icons.question_mark,
+                  //     );
+                  //   }
+                  // }),
                   title: Text(objects.elementAt(index).name!),
                   subtitle:
                       Text(objects.elementAt(index).accountnumber.toString()),

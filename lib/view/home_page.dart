@@ -1,11 +1,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:search_and_filtering/TEST.dart';
 import 'package:search_and_filtering/config/app_config.dart' as conf;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:search_and_filtering/cubit/cubit_controller.dart';
-import 'package:search_and_filtering/model/response_model.dart';
 
+import '../core/model/response_model.dart';
 import 'custom_widgets/grid_view_scroll.dart';
 import 'custom_widgets/list_view_scroll.dart';
 
@@ -20,7 +19,7 @@ class _HomePageState extends State<HomePage> {
   TextEditingController searchController = TextEditingController();
   late bool _isFilterOpen, _isListView;
   String? _stateCode = '-', _stateProvince = '-';
-  List<ResponseModel?> objects = [];
+  List<ResponseModel> objects = [];
 
   @override
   void initState() {
@@ -37,7 +36,7 @@ class _HomePageState extends State<HomePage> {
       ),
       body: Stack(
         children: [
-          mainPage(context),
+          mainPage(),
           transparentBackground(),
           filterScreen(),
         ],
@@ -45,7 +44,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Column mainPage(BuildContext context) {
+  Column mainPage() {
     return Column(
       children: [
         //search and filter
@@ -62,8 +61,20 @@ class _HomePageState extends State<HomePage> {
               return _isListView ? listView(objects) : gridView(objects);
             } else if (state is TableUpdated) {
               return _isListView ? listView(objects) : gridView(objects);
+            } else if (state is LoadingState) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            } else if (state is DataReceived) {
+              return listView(state.accounts);
+            } else if (state is AuthFail) {
+              return const Center(
+                child: Text("Authentication Fail"),
+              );
+            } else if (state is AuthSuccessful) {
+              context.read<CubitController>().getAccounts();
             }
-            return listView(TEST.objects());
+            return listView([]);
           },
         )
       ],
@@ -180,7 +191,7 @@ class _HomePageState extends State<HomePage> {
         color: Colors.blue,
         child: const Text("Filter"),
         onPressed: () {
-          var list = TEST.objects();
+          var list = context.read<CubitController>().allAccounts;
           if (_stateCode != '-' && _stateProvince != '-') {
             context.read<CubitController>().updateObjectsTable(list
                 .where((element) =>
@@ -199,7 +210,7 @@ class _HomePageState extends State<HomePage> {
                 .where((element) => element.statecode.toString() == _stateCode)
                 .toList());
           } else {
-            context.read<CubitController>().updateObjectsTable(TEST.objects());
+            context.read<CubitController>().updateObjectsTable(list);
           }
           setState(() {
             _isFilterOpen = false;
@@ -262,7 +273,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Expanded listView(var list) {
+  Expanded listView(List<ResponseModel> list) {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.only(
@@ -326,10 +337,6 @@ class _HomePageState extends State<HomePage> {
       child: Center(
         child: GestureDetector(
           onTap: () {
-            //remove later
-            context.read<CubitController>().setStateCodes();
-            context.read<CubitController>().setStatesProvinces();
-            //
             setState(() {
               _isFilterOpen = true;
             });
@@ -363,12 +370,10 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         onChanged: (value) {
+          var list = context.read<CubitController>().allAccounts;
           value.isEmpty
-              ? context
-                  .read<CubitController>()
-                  .updateObjectsTable(TEST.objects())
-              : context.read<CubitController>().updateObjectsTable(TEST
-                  .objects()
+              ? context.read<CubitController>().updateObjectsTable(list)
+              : context.read<CubitController>().updateObjectsTable(list
                   .where((element) =>
                       element.name!.startsWith(value) ||
                       element.accountnumber.toString().startsWith(value))

@@ -1,8 +1,8 @@
 import 'package:aad_oauth/aad_oauth.dart';
 import 'package:aad_oauth/model/config.dart';
-import 'package:flutter/foundation.dart';
-import 'package:search_and_filtering/service/auth/IOAuthService.dart';
 import 'package:search_and_filtering/config/app_config.dart' as conf;
+
+import 'IOAuthService.dart';
 
 class OAuthService extends IOAuthService {
   @override
@@ -10,8 +10,8 @@ class OAuthService extends IOAuthService {
     Config c = Config(
       tenant: conf.tenantId,
       clientId: conf.clientId,
-      redirectUri: kIsWeb ? 'http://localhost:8483' : conf.redirectUrl,
-      scope: conf.dynamicCrm,
+      redirectUri: conf.redirectUrl,
+      scope: conf.dynamicsCrmApi,
       navigatorKey: conf.AppConfig.navigatorKey,
     );
     AadOAuth auth = AadOAuth(c);

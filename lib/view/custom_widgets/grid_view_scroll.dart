@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:search_and_filtering/model/response_model.dart';
 
+import '../../core/model/response_model.dart';
 import '../../utility/page_router.dart';
 import '../details_screen.dart';
 
@@ -28,9 +28,20 @@ class GridViewScroll extends StatelessWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Image(
-                  image: objects.elementAt(index).entityimageUrl,
+                const Icon(
+                  Icons.question_mark,
                 ),
+                // Builder(builder: (context) {
+                //   if (objects.elementAt(index).entityimage != null) {
+                //     return Image(
+                //       image: AssetImage(objects.elementAt(index).entityimage!),
+                //     );
+                //   } else {
+                //     return const Icon(
+                //       Icons.question_mark,
+                //     );
+                //   }
+                // }),
                 Text(objects.elementAt(index).name!),
                 Text(objects.elementAt(index).accountnumber.toString()),
               ],

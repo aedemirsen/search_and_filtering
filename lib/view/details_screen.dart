@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:search_and_filtering/model/response_model.dart';
 import 'package:search_and_filtering/config/app_config.dart' as conf;
+
+import '../core/model/response_model.dart';
 
 class DetailsView extends StatelessWidget {
   const DetailsView({Key? key, required this.model}) : super(key: key);
@@ -14,34 +15,8 @@ class DetailsView extends StatelessWidget {
         children: [
           Stack(
             children: [
-              Container(
-                height: (conf.AppConfig.screenHeight ?? 0) * 0.4,
-                width: conf.AppConfig.screenWidth,
-                color: Colors.grey,
-                child: Image(image: model.entityimageUrl),
-              ),
-              Align(
-                alignment: Alignment.topLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 50.0, left: 20),
-                  child: GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.black45,
-                      ),
-                      width: 40,
-                      height: 40,
-                      child: const Icon(
-                        Icons.close_rounded,
-                        size: 30,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+              imageView(),
+              closeIcon(context),
             ],
           ),
           Padding(
@@ -62,6 +37,50 @@ class DetailsView extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Align closeIcon(BuildContext context) {
+    return Align(
+      alignment: Alignment.topLeft,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 50.0, left: 20),
+        child: GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: Container(
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.black45,
+            ),
+            width: 40,
+            height: 40,
+            child: const Icon(
+              Icons.close_rounded,
+              size: 30,
+              color: Colors.white,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Container imageView() {
+    return Container(
+      height: (conf.AppConfig.screenHeight ?? 0) * 0.4,
+      width: conf.AppConfig.screenWidth,
+      color: Colors.grey,
+      child: Builder(builder: (context) {
+        if (model.entityimage != null) {
+          return Image(
+            image: AssetImage(model.entityimage!),
+          );
+        } else {
+          return const Icon(
+            Icons.question_mark,
+          );
+        }
+      }),
     );
   }
 }
